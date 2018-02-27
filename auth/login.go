@@ -37,11 +37,11 @@ func setupLoginService(mux *http.ServeMux, issuer string) {
 		ClientID:     oidcConfig.ClientID,
 		ClientSecret: os.Getenv(EnvOIDCClientSecret),
 		Endpoint:     provider.Endpoint(),
-		RedirectURL:  strings.TrimRight(os.Getenv(EnvPKSEndpoint), "/") + "/login/authcode",
+		RedirectURL:  strings.TrimRight(os.Getenv(EnvEndpoint), "/") + "/login/authcode",
 		Scopes:       []string{oidcp.ScopeOpenID, "roles", "user_attributes"},
 	}
 
-	pksURL, err := url.Parse(os.Getenv(EnvPKSEndpoint))
+	HostURL, err := url.Parse(os.Getenv(EnvEndpoint))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -50,8 +50,8 @@ func setupLoginService(mux *http.ServeMux, issuer string) {
 	mux.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
 		state := r.URL.Query().Get("port")
 		parsed, _ := url.Parse(config.AuthCodeURL(state))
-		parsed.Host = pksURL.Host
-		parsed.Scheme = pksURL.Scheme
+		parsed.Host = HostURL.Host
+		parsed.Scheme = HostURL.Scheme
 		http.Redirect(w, r, parsed.String(), http.StatusFound)
 	})
 
